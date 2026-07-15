@@ -167,7 +167,7 @@ The full Git process is explained in the **Git Workflow Guide**, but the basic s
 ```bash
 git add .
 
-git commit -m "Describe your changes"
+git commit -m "Describe your changes in between these quotation marks"
 
 git push
 ```

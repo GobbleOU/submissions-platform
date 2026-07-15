@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-
+///This is the file in charge of running the upload process via the UploadFilmPage function.
 
 export default function UploadFilmPage() {
   const [file, setFile] = useState<File | null>(null);

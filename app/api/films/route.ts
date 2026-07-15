@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
+/// This is the file that takes care of uploading reuests to supabase 
 export async function POST(request: Request) {
   try {
     const body = await request.json();

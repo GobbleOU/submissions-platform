@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import mammoth from "mammoth";
-
+/// This is the file for extracting the information from the uploaded docx and pdf files and turning it into a raw data file for the AI to read. 
 
 export async function POST(request: Request) {
   try {

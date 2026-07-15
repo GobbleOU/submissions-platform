@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-
+/// this is the prisma library file do not touch.  
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };

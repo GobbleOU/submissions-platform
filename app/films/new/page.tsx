@@ -1,20 +1,24 @@
 "use client";
 
+
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 export default function NewFilmPage() {
+  const searchParams = useSearchParams();
+
   const [form, setForm] = useState({
-    title: "",
-    originalTitle: "",
-    year: "",
-    runtime: "",
-    genre: "",
-    format: "",
-    countryProduction: "",
-    languages: "",
-    director: "",
-    productionCompany: "",
-    logline: "",
-    shortSynopsis: "",
+    title: searchParams.get("title") ?? "",
+originalTitle: searchParams.get("originalTitle") ?? "",
+year: searchParams.get("year") ?? "",
+runtime: searchParams.get("runtime") ?? "",
+genre: searchParams.get("genre") ?? "",
+format: searchParams.get("format") ?? "",
+countryProduction: searchParams.get("countryProduction") ?? "",
+languages: searchParams.get("languages") ?? "",
+director: searchParams.get("director") ?? "",
+productionCompany: searchParams.get("productionCompany") ?? "",
+logline: searchParams.get("logline") ?? "",
+shortSynopsis: searchParams.get("shortSynopsis") ?? "",
   });
 
   function updateField(
@@ -75,7 +79,7 @@ export default function NewFilmPage() {
           "director",
           "productionCompany",
         ].map((field) => (
-          <input
+         <input
   key={field}
   name={field}
   type={
@@ -84,7 +88,7 @@ export default function NewFilmPage() {
       : "text"
   }
   placeholder={field}
-  value={(form as any)[field]}
+  value={form[field as keyof typeof form]}
   onChange={updateField}
   className="border p-2 w-full rounded"
 />

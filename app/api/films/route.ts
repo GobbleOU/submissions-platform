@@ -11,9 +11,7 @@ export async function POST(request: Request) {
     originalTitle: body.originalTitle,
 
     year: Number(body.year),
-    runtime: body.runtime
-      ? Number(body.runtime)
-      : null,
+    runtime: Number(body.runtime),
 
     genre: body.genre,
     format: body.format,

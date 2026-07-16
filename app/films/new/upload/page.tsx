@@ -1,10 +1,13 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+
 
 ///This is the file in charge of running the upload process via the UploadFilmPage function.
 
 export default function UploadFilmPage() {
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
 
   function handleFileChange(
@@ -52,7 +55,30 @@ const response = await fetch("/api/extract-document", {
 
 const result = await response.json();
 
-console.log(JSON.stringify(result, null, 2));
+console.log("Extracted text:", result.text);
+
+// Send the extracted text to the AI
+const aiResponse = await fetch("/api/extract-film", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    text: result.text,
+  }),
+});
+
+const aiResult = await aiResponse.json();
+
+const params = new URLSearchParams();
+
+Object.entries(aiResult).forEach(([key, value]) => {
+  if (value !== null && value !== undefined) {
+    params.set(key, String(value));
+  }
+});
+
+router.push(`/films/new?${params.toString()}`);
 
 alert("Upload successful!");
 }

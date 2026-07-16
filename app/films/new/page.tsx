@@ -3,8 +3,10 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 export default function NewFilmPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [form, setForm] = useState({
     title: searchParams.get("title") ?? "",
@@ -62,12 +64,10 @@ function formatLabel(field: string) {
 
   console.log("Response:", res.status, data);
 
-  if (!res.ok) {
-    alert("Failed");
-    return;
-  }
+  const router = useRouter();
 
   alert("Film created!");
+
 }
 
   return (
@@ -77,25 +77,20 @@ function formatLabel(field: string) {
       </h1>
 
       <form onSubmit={submitFilm} className="space-y-8">
+      <h2 className="text-xl font-semibold">
+         Basic Information
+      </h2>
 
   <div className="grid grid-cols-2 gap-4">
 
     {[
-      "title",
-      "originalTitle",
-      "year",
-      "runtime",
-      "genre",
-      "format",
-      "countryProduction",
-      "languages",
-      "director",
-      "productionCompany",
-      "completionDate",
-      "worldPremiereStatus",
-      "internationalPremiereStatus",
-      "previousFestivalSelections",
-    ].map((field) => (
+  "title",
+  "originalTitle",
+  "year",
+  "runtime",
+  "genre",
+  "format",
+].map((field) => (
       <input
         key={field}
         name={field}
@@ -113,7 +108,33 @@ function formatLabel(field: string) {
 
   </div>
 
-        <textarea
+   <h2 className="text-xl font-semibold mt-8">
+    Production
+  </h2>
+
+  <div className="grid grid-cols-2 gap-4">
+
+    {[
+      "countryProduction",
+      "languages",
+      "director",
+      "productionCompany",
+      "completionDate",
+    ].map((field) => (
+      <input
+        key={field}
+        name={field}
+        type="text"
+        placeholder={formatLabel(field)}
+        value={form[field as keyof typeof form]}
+        onChange={updateField}
+        className="border p-2 w-full rounded"
+      />
+    ))}
+
+  </div>
+
+  <textarea
           name="logline"
           placeholder="Logline"
           value={form.logline}
@@ -128,6 +149,32 @@ function formatLabel(field: string) {
           onChange={updateField}
           className="border p-2 w-full rounded"
         />
+
+   <h2 className="text-xl font-semibold mt-8">
+    Festival Information
+  </h2>
+
+  <div className="grid grid-cols-2 gap-4">
+
+    {[
+      "worldPremiereStatus",
+      "internationalPremiereStatus",
+      "previousFestivalSelections",
+    ].map((field) => (
+      <input
+        key={field}
+        name={field}
+        type="text"
+        placeholder={formatLabel(field)}
+        value={form[field as keyof typeof form]}
+        onChange={updateField}
+        className="border p-2 w-full rounded"
+      />
+    ))}
+
+  </div>
+
+        
 
         <button
           className="bg-black text-white px-4 py-2 rounded"

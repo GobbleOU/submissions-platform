@@ -3,11 +3,13 @@ import { prisma } from "@/lib/prisma";
 export default async function FilmPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
+
   const film = await prisma.film.findUnique({
     where: {
-      id: Number(params.id),
+      id: BigInt(id),
     },
   });
 

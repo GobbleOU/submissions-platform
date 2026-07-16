@@ -64,7 +64,12 @@ function formatLabel(field: string) {
 
   console.log("Response:", res.status, data);
 
-  const router = useRouter();
+  if (!res.ok) {
+  alert("Failed");
+  return;
+}
+
+router.push(`/films/${data.id}`);
 
   alert("Film created!");
 

@@ -1,6 +1,6 @@
 "use client";
 
-
+///This page now takes care of the uploaded file on the database 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";

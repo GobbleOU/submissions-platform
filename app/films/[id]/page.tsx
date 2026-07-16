@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 
 export default async function FilmPage({
   params,
@@ -19,26 +20,59 @@ export default async function FilmPage({
 
   return (
     <main className="p-8 max-w-5xl">
-      <h1 className="text-3xl font-bold mb-6">
-        {film.title}
-      </h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">
+          {film.title}
+        </h1>
+
+        <Link
+          href={`/films/${film.id}/edit`}
+          className="bg-black text-white px-4 py-2 rounded"
+        >
+          Edit Film
+        </Link>
+      </div>
 
       <div className="space-y-4">
 
         <p>
-          <strong>Director:</strong> {film.director}
+          <strong>Original Title:</strong>{" "}
+          {film.originalTitle}
         </p>
 
         <p>
-          <strong>Year:</strong> {film.year}
+          <strong>Director:</strong>{" "}
+          {film.director}
         </p>
 
         <p>
-          <strong>Runtime:</strong> {film.runtime} minutes
+          <strong>Year:</strong>{" "}
+          {film.year}
         </p>
 
         <p>
-          <strong>Genre:</strong> {film.genre}
+          <strong>Runtime:</strong>{" "}
+          {film.runtime} minutes
+        </p>
+
+        <p>
+          <strong>Genre:</strong>{" "}
+          {film.genre}
+        </p>
+
+        <p>
+          <strong>Format:</strong>{" "}
+          {film.format}
+        </p>
+
+        <p>
+          <strong>Country Production:</strong>{" "}
+          {film.countryProduction}
+        </p>
+
+        <p>
+          <strong>Languages:</strong>{" "}
+          {film.languages}
         </p>
 
         <p>
@@ -46,19 +80,49 @@ export default async function FilmPage({
           {film.productionCompany}
         </p>
 
+        <p>
+          <strong>Completion Date:</strong>{" "}
+          {film.completionDate?.toISOString().split("T")[0]}
+        </p>
+
         <hr />
 
         <h2 className="text-xl font-semibold">
-          Logline
+          Festival Information
         </h2>
+
+        <p>
+          <strong>World Premiere:</strong>{" "}
+          {film.worldPremiereStatus}
+        </p>
+
+        <p>
+          <strong>International Premiere:</strong>{" "}
+          {film.internationalPremiereStatus}
+        </p>
+
+        <p>
+          <strong>Previous Festival Selections:</strong>{" "}
+          {film.previousFestivalSelections}
+        </p>
+
+        <hr />
+
+        <h2 className="text-xl font-semibold">
+          Synopsis
+        </h2>
+
+        <p>
+          <strong>Logline:</strong>
+        </p>
 
         <p>
           {film.logline}
         </p>
 
-        <h2 className="text-xl font-semibold">
-          Short Synopsis
-        </h2>
+        <p>
+          <strong>Short Synopsis:</strong>
+        </p>
 
         <p>
           {film.shortSynopsis}

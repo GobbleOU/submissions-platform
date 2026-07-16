@@ -23,6 +23,8 @@ export async function POST(request: Request) {
       "A retired lighthouse keeper confronts a lifetime of secrets when a stranger washes ashore.",
     shortSynopsis:
       "On a remote stretch of the Brittany coast, an aging lighthouse keeper...",
+      
     sourceLength: text.length,
+
   });
 }

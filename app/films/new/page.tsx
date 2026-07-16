@@ -19,6 +19,10 @@ director: searchParams.get("director") ?? "",
 productionCompany: searchParams.get("productionCompany") ?? "",
 logline: searchParams.get("logline") ?? "",
 shortSynopsis: searchParams.get("shortSynopsis") ?? "",
+completionDate: searchParams.get("completionDate") ?? "",
+worldPremiereStatus: searchParams.get("worldPremiereStatus") ?? "",
+internationalPremiereStatus: searchParams.get("internationalPremiereStatus") ?? "",
+previousFestivalSelections: searchParams.get("previousFestivalSelections") ?? "",
   });
 
   function updateField(
@@ -29,6 +33,13 @@ shortSynopsis: searchParams.get("shortSynopsis") ?? "",
       [e.target.name]: e.target.value,
     });
   }
+
+function formatLabel(field: string) {
+  return field
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (str) => str.toUpperCase());
+}
+
 
  async function submitFilm(e: React.FormEvent) {
   e.preventDefault();
@@ -60,39 +71,47 @@ shortSynopsis: searchParams.get("shortSynopsis") ?? "",
 }
 
   return (
-    <main className="p-8 max-w-xl">
+    <main className="p-8 max-w-5xl">
       <h1 className="text-3xl font-bold mb-6">
         Create Film
       </h1>
 
-      <form onSubmit={submitFilm} className="space-y-4">
+      <form onSubmit={submitFilm} className="space-y-8">
 
-        {[
-          "title",
-          "originalTitle",
-          "year",
-          "runtime",
-          "genre",
-          "format",
-          "countryProduction",
-          "languages",
-          "director",
-          "productionCompany",
-        ].map((field) => (
-         <input
-  key={field}
-  name={field}
-  type={
-    field === "year" || field === "runtime"
-      ? "number"
-      : "text"
-  }
-  placeholder={field}
-  value={form[field as keyof typeof form]}
-  onChange={updateField}
-  className="border p-2 w-full rounded"
-/>
-        ))}
+  <div className="grid grid-cols-2 gap-4">
+
+    {[
+      "title",
+      "originalTitle",
+      "year",
+      "runtime",
+      "genre",
+      "format",
+      "countryProduction",
+      "languages",
+      "director",
+      "productionCompany",
+      "completionDate",
+      "worldPremiereStatus",
+      "internationalPremiereStatus",
+      "previousFestivalSelections",
+    ].map((field) => (
+      <input
+        key={field}
+        name={field}
+        type={
+          field === "year" || field === "runtime"
+            ? "number"
+            : "text"
+        }
+        placeholder={formatLabel(field)}
+        value={form[field as keyof typeof form]}
+        onChange={updateField}
+        className="border p-2 w-full rounded"
+      />
+    ))}
+
+  </div>
 
         <textarea
           name="logline"

@@ -1,12 +1,17 @@
 "use client";
 
 import { useState } from "react";
-
+import { useRouter } from "next/navigation";
 export default function EditFilmForm({
+
+    
   film,
 }: {
+    
   film: any;
 }) {
+
+const router = useRouter();
   const [form, setForm] = useState({
   title: film.title ?? "",
   originalTitle: film.originalTitle ?? "",
@@ -39,9 +44,30 @@ function updateField(
   });
 }
 
+async function updateFilm(
+  e: React.FormEvent
+) {
+  e.preventDefault();
+
+  const res = await fetch(`/api/films/${film.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(form),
+  });
+
+  if (!res.ok) {
+    alert("Failed to update film");
+    return;
+  }
+
+  router.push(`/films/${film.id}`);
+}
+
   return (
   <main className="p-8 max-w-5xl">
-    <form>
+    <form onSubmit={updateFilm}>
     <h1 className="text-3xl font-bold mb-6">
       Edit {film.title}
     </h1>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import DeleteFilmButton from "@/components/DeleteFilmButton";
 import { prisma } from "@/lib/prisma";
 
 export default async function FilmsDashboardPage() {
@@ -46,21 +47,28 @@ export default async function FilmsDashboardPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {films.map((film) => (
-            <Link
+            <article
               key={film.id.toString()}
-              href={`/films/${film.id}`}
-              className="rounded-lg border border-zinc-200 p-5 transition hover:border-zinc-400 hover:shadow-sm"
+              className="rounded-lg border border-zinc-200 p-5"
             >
-              <p className="text-sm text-zinc-500">{film.year}</p>
-              <h2 className="mt-1 text-xl font-semibold">{film.title}</h2>
-              <p className="mt-3 line-clamp-2 text-sm text-zinc-600">
-                {film.logline}
-              </p>
-              <div className="mt-5 flex items-center justify-between text-sm text-zinc-500">
-                <span>{film.genre}</span>
-                <span>{film.runtime} min</span>
+              <Link
+                href={`/films/${film.id}`}
+                className="block transition hover:text-zinc-600"
+              >
+                <p className="text-sm text-zinc-500">{film.year}</p>
+                <h2 className="mt-1 text-xl font-semibold">{film.title}</h2>
+                <p className="mt-3 line-clamp-2 text-sm text-zinc-600">
+                  {film.logline}
+                </p>
+                <div className="mt-5 flex items-center justify-between text-sm text-zinc-500">
+                  <span>{film.genre}</span>
+                  <span>{film.runtime} min</span>
+                </div>
+              </Link>
+              <div className="mt-5 border-t border-zinc-100 pt-4">
+                <DeleteFilmButton filmId={film.id.toString()} />
               </div>
-            </Link>
+            </article>
           ))}
         </div>
       )}

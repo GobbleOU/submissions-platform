@@ -38,6 +38,9 @@ export default function RootLayout({
               <Link href="/films" className="text-zinc-600 hover:text-zinc-950">
                 Films
               </Link>
+              <Link href="/submissions" className="text-zinc-600 hover:text-zinc-950">
+                Submissions
+              </Link>
               <Link href="/films/new" className="rounded bg-zinc-900 px-3 py-2 text-white hover:bg-zinc-700">
                 New film
               </Link>

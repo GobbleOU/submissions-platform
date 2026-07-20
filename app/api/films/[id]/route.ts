@@ -70,3 +70,31 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  {
+    params,
+  }: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  try {
+    const { id } = await params;
+
+    await prisma.film.delete({
+      where: {
+        id: BigInt(id),
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Failed to delete film" },
+      { status: 500 }
+    );
+  }
+}

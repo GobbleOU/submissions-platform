@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import DeleteFilmButton from "@/components/DeleteFilmButton";
 
 export default async function FilmPage({
   params,
@@ -38,6 +39,7 @@ export default async function FilmPage({
           >
             Edit Film
           </Link>
+          <DeleteFilmButton filmId={film.id.toString()} />
         </div>
       </div>
 

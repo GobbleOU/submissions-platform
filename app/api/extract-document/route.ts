@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+
 import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
-/// This is the file for extracting the information from the uploaded docx and pdf files and turning it into a raw data file for the AI to read. 
+import pdf from "pdf-parse/lib/pdf-parse.js";
+
+// This file extracts information from uploaded DOCX and PDF files
+// and turns it into raw text data for the AI to read.
 
 export async function POST(request: Request) {
   try {
@@ -16,7 +20,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -24,12 +28,17 @@ export async function POST(request: Request) {
       file.type ===
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
       file.name.toLowerCase().endsWith(".docx");
+
     const isPdf =
       file.type === "application/pdf" ||
       file.name.toLowerCase().endsWith(".pdf");
 
+    // DOCX extraction
     if (isDocx) {
       const result = await mammoth.extractRawText({ buffer });
+
+      console.log("DOCX text length:", result.value.length);
+      console.log(result.value.slice(0, 500));
 
       return NextResponse.json({
         success: true,
@@ -38,31 +47,34 @@ export async function POST(request: Request) {
       });
     }
 
+    // PDF extraction
     if (isPdf) {
-      const parser = new PDFParse({ data: buffer });
+      const result = await pdf(buffer);
 
-      try {
-        const result = await parser.getText();
+      console.log("PDF text length:", result.text.length);
+      console.log(result.text.slice(0, 500));
 
-        return NextResponse.json({
-          success: true,
-          text: result.text,
-          messages: [],
-        });
-      } finally {
-        await parser.destroy();
-      }
+      return NextResponse.json({
+        success: true,
+        text: result.text,
+        messages: [],
+      });
     }
 
     return NextResponse.json(
-      { error: "Only PDF and DOCX files are supported" },
+      {
+        error: "Only PDF and DOCX files are supported",
+      },
       { status: 400 }
     );
+
   } catch (error) {
-    console.error(error);
+    console.error("Extraction error:", error);
 
     return NextResponse.json(
-      { error: "Extraction failed" },
+      {
+        error: "Extraction failed",
+      },
       { status: 500 }
     );
   }

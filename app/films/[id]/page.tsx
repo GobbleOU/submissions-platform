@@ -20,17 +20,25 @@ export default async function FilmPage({
 
   return (
     <main className="p-8 max-w-5xl">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-3xl font-bold">
           {film.title}
         </h1>
 
-        <Link
-          href={`/films/${film.id}/edit`}
-          className="bg-black text-white px-4 py-2 rounded"
-        >
-          Edit Film
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href="/films"
+            className="border border-zinc-300 px-4 py-2 rounded"
+          >
+            All films
+          </Link>
+          <Link
+            href={`/films/${film.id}/edit`}
+            className="bg-black text-white px-4 py-2 rounded"
+          >
+            Edit Film
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-4">

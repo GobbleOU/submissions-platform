@@ -1,37 +1,23 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { createRouteSupabase } from "@/lib/supabase-server";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
 
   if (code) {
-    const cookieStore = await cookies();
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-            });
-          },
-        },
-      }
-    );
+    const supabase = await createRouteSupabase();
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error("Error exchanging code for session:", error);
-      return NextResponse.redirect(
-        new URL("/sign-in?error=auth_callback", request.url)
+      console.error("AUTH CALLBACK ERROR:", error);
+
+      return NextResponse.json(
+        {
+          error: error.message,
+        },
+        { status: 400 }
       );
     }
   }

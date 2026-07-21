@@ -30,6 +30,7 @@ export default async function FilmsDashboardPage() {
   }
 
 const films = await prisma.film.findMany({
+  where: { ownerId: session.user.id },
   orderBy: { created_at: "desc" },
 });
 

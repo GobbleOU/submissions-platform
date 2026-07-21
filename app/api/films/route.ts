@@ -4,6 +4,7 @@ import { createServerSupabase } from "@/lib/supabase-server";
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabase();
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -18,9 +19,25 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
+    // Make sure the authenticated Supabase user
+    // exists in our Prisma users table
+    const user = await prisma.user.upsert({
+      where: {
+        id: session.user.id,
+      },
+      update: {
+        email: session.user.email,
+      },
+      create: {
+        id: session.user.id,
+        email: session.user.email,
+      },
+    });
+
     const film = await prisma.film.create({
       data: {
-        ownerId: session.user.id,
+        ownerId: user.id,
+
         title: body.title,
         originalTitle: body.originalTitle,
 
@@ -36,7 +53,9 @@ export async function POST(request: Request) {
           ? new Date(body.completionDate)
           : null,
 
-        worldPremiereStatus: body.worldPremiereStatus || null,
+        worldPremiereStatus:
+          body.worldPremiereStatus || null,
+
         internationalPremiereStatus:
           body.internationalPremiereStatus || null,
 
@@ -51,17 +70,15 @@ export async function POST(request: Request) {
       },
     });
 
-
-
     return NextResponse.json(
-  JSON.parse(
-    JSON.stringify(film, (_, value) =>
-      typeof value === "bigint"
-        ? value.toString()
-        : value
-    )
-  )
-);
+      JSON.parse(
+        JSON.stringify(film, (_, value) =>
+          typeof value === "bigint"
+            ? value.toString()
+            : value
+        )
+      )
+    );
   } catch (error) {
     console.error(error);
 

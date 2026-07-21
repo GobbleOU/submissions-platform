@@ -1,12 +1,20 @@
 "use client";
 
 ///This page now takes care of the uploaded file on the database 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "@/components/SupabaseProvider";
+
 export default function NewFilmPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const session = useSession();
+
+  useEffect(() => {
+    if (session === null) {
+      router.push("/login");
+    }
+  }, [router, session]);
 
   const [form, setForm] = useState({
     title: searchParams.get("title") ?? "",

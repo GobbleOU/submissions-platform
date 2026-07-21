@@ -2,13 +2,36 @@ import Link from "next/link";
 
 import DeleteFilmButton from "@/components/DeleteFilmButton";
 import { prisma } from "@/lib/prisma";
+import { createServerSupabase } from "@/lib/supabase-server";
 
 export default async function FilmsDashboardPage() {
-  const films = await prisma.film.findMany({
-    orderBy: {
-      created_at: "desc",
-    },
-  });
+  const supabase = await createServerSupabase();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.user) {
+    return (
+      <main className="mx-auto w-full max-w-6xl p-8">
+        <div className="rounded-lg border border-dashed border-zinc-300 p-10 text-center">
+          <h1 className="text-3xl font-bold">Sign in to see your films</h1>
+          <p className="mt-3 text-zinc-600">
+            You need to be signed in to access your dashboard.
+          </p>
+          <Link
+            href="/login"
+            className="mt-6 inline-block rounded bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-700"
+          >
+            Sign in
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+const films = await prisma.film.findMany({
+  orderBy: { created_at: "desc" },
+});
 
   return (
     <main className="mx-auto w-full max-w-6xl p-8">

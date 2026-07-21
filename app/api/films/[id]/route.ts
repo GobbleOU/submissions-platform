@@ -1,5 +1,27 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createServerSupabase } from "@/lib/supabase-server";
+
+async function authorizeFilm(id: string) {
+  const supabase = await createServerSupabase();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.user) {
+    return { status: 401, body: { error: "Unauthorized" } };
+  }
+
+  const film = await prisma.film.findUnique({
+    where: { id: BigInt(id) },
+  });
+
+  if (!film || film.ownerId !== session.user.id) {
+    return { status: 403, body: { error: "Forbidden" } };
+  }
+
+  return { status: 200, body: { session, film } };
+}
 
 export async function PUT(
   request: Request,
@@ -9,9 +31,14 @@ export async function PUT(
     params: Promise<{ id: string }>;
   }
 ) {
-  try {
-    const { id } = await params;
+  const { id } = await params;
+  const auth = await authorizeFilm(id);
 
+  if (auth.status !== 200) {
+    return NextResponse.json(auth.body, { status: auth.status });
+  }
+
+  try {
     const body = await request.json();
 
     const film = await prisma.film.update({
@@ -60,7 +87,6 @@ export async function PUT(
         )
       )
     );
-
   } catch (error) {
     console.error(error);
 
@@ -79,9 +105,14 @@ export async function DELETE(
     params: Promise<{ id: string }>;
   }
 ) {
-  try {
-    const { id } = await params;
+  const { id } = await params;
+  const auth = await authorizeFilm(id);
 
+  if (auth.status !== 200) {
+    return NextResponse.json(auth.body, { status: auth.status });
+  }
+
+  try {
     await prisma.film.delete({
       where: {
         id: BigInt(id),

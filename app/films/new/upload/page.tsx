@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "@/components/SupabaseProvider";
 import { supabase } from "@/lib/supabase";
 
 
@@ -8,7 +9,14 @@ import { supabase } from "@/lib/supabase";
 
 export default function UploadFilmPage() {
   const router = useRouter();
+  const session = useSession();
   const [file, setFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (session === null) {
+      router.push("/login");
+    }
+  }, [router, session]);
 
   function handleFileChange(
     e: React.ChangeEvent<HTMLInputElement>

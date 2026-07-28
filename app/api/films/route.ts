@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createServerSupabase } from "@/lib/supabase-server";
 
+///This is for connections and user authentication
 export async function POST(request: Request) {
   const supabase = await createServerSupabase();
 
@@ -19,8 +20,17 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
+
+    // Temporary debugging
+console.log("SUPABASE USER ID:", session.user.id);
+console.log("SUPABASE USER EMAIL:", session.user.email);
+
+const allUsers = await prisma.user.findMany();
+
+console.log("PRISMA USERS:", allUsers);
     // Make sure the authenticated Supabase user
     // exists in our Prisma users table
+
     const user = await prisma.user.upsert({
       where: {
         id: session.user.id,

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { createServerSupabase } from "@/lib/supabase-server";
+import NewVersionButton from "./NewVersionButton";
 
 export default async function AllVersionsPage({
   params,
@@ -101,12 +102,7 @@ export default async function AllVersionsPage({
             Versions
           </h2>
 
-          <button
-            type="button"
-            className="rounded bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-700"
-          >
-            + New version
-          </button>
+          <NewVersionButton filmId={film.id.toString()} />
         </div>
 
         {film.allVersions.length === 0 ? (

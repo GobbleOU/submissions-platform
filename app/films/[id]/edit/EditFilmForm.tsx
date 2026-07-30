@@ -3,12 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 export default function EditFilmForm({
-
-    
   film,
+  redirectTo,
 }: {
-    
   film: any;
+  redirectTo?: string;
 }) {
 
 const router = useRouter();
@@ -62,7 +61,8 @@ async function updateFilm(
     return;
   }
 
-  router.push(`/films/${film.id}`);
+  router.push(redirectTo ?? `/films/${film.id}`);
+router.refresh();
 }
 
   return (

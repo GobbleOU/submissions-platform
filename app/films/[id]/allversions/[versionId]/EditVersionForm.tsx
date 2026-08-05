@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import VersionSection from "@/components/VersionSection";
 
 type EditVersionFormProps = {
   filmId: string;
@@ -77,8 +78,6 @@ export default function EditVersionForm({
       }
 
       setIsSaving(false);
-router.refresh();
-
       router.refresh();
     } catch (error) {
       setError(
@@ -94,20 +93,16 @@ router.refresh();
   return (
     <form
       onSubmit={saveVersion}
-      className="mt-8 space-y-8"
+      className="mt-8 space-y-6"
     >
-      <section className="rounded-lg border border-zinc-200 p-6">
-        <h2 className="text-xl font-semibold">
-          Version information
-        </h2>
-
-        <div className="mt-5">
+      <VersionSection title="Basic Information">
+        <div>
           <label
-  htmlFor="title"
-  className="text-sm font-medium text-zinc-700"
->
-  Title
-</label>
+            htmlFor="title"
+            className="text-sm font-medium text-zinc-700"
+          >
+            Title
+          </label>
 
           <input
             id="title"
@@ -117,14 +112,10 @@ router.refresh();
             className="mt-2 w-full rounded border border-zinc-300 px-3 py-2"
           />
         </div>
-      </section>
+      </VersionSection>
 
-      <section className="rounded-lg border border-zinc-200 p-6">
-        <h2 className="text-xl font-semibold">
-          Synopsis
-        </h2>
-
-        <div className="mt-5 space-y-5">
+      <VersionSection title="Synopsis">
+        <div className="space-y-5">
           <Field
             label="Logline"
             name="logline"
@@ -149,14 +140,10 @@ router.refresh();
             rows={10}
           />
         </div>
-      </section>
+      </VersionSection>
 
-      <section className="rounded-lg border border-zinc-200 p-6">
-        <h2 className="text-xl font-semibold">
-          Statements
-        </h2>
-
-        <div className="mt-5 space-y-5">
+      <VersionSection title="Statements">
+        <div className="space-y-5">
           <Field
             label="Director statement"
             name="directorStatement"
@@ -173,14 +160,10 @@ router.refresh();
             rows={8}
           />
         </div>
-      </section>
+      </VersionSection>
 
-      <section className="rounded-lg border border-zinc-200 p-6">
-        <h2 className="text-xl font-semibold">
-          Links
-        </h2>
-
-        <div className="mt-5">
+      <VersionSection title="Links" defaultOpen={false}>
+        <div>
           <label
             htmlFor="trailerUrl"
             className="text-sm font-medium text-zinc-700"
@@ -197,7 +180,7 @@ router.refresh();
             className="mt-2 w-full rounded border border-zinc-300 px-3 py-2"
           />
         </div>
-      </section>
+      </VersionSection>
 
       {error && (
         <p className="text-sm text-red-600">
@@ -205,13 +188,15 @@ router.refresh();
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={isSaving}
-        className="rounded bg-zinc-900 px-5 py-2.5 font-medium text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isSaving ? "Saving..." : "Save changes"}
-      </button>
+      <div className="sticky bottom-6 flex justify-end">
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="rounded bg-zinc-900 px-6 py-3 font-medium text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isSaving ? "Saving..." : "Save Changes"}
+        </button>
+      </div>
     </form>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { createServerSupabase } from "@/lib/supabase-server";
+import EditVersionForm from "./EditVersionForm";
 
 export default async function AllVersionDetailPage({
   params,
@@ -19,7 +20,22 @@ export default async function AllVersionDetailPage({
   } = await supabase.auth.getSession();
 
   if (!session?.user) {
-    return null;
+    return (
+      <main className="mx-auto w-full max-w-6xl p-8">
+        <div className="rounded-lg border border-dashed border-zinc-300 p-10 text-center">
+          <h1 className="text-3xl font-bold">
+            Sign in to view this version
+          </h1>
+
+          <Link
+            href="/login"
+            className="mt-6 inline-block rounded bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-700"
+          >
+            Sign in
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   const allVersion = await prisma.allVersion.findFirst({
@@ -38,7 +54,9 @@ export default async function AllVersionDetailPage({
   if (!allVersion) {
     return (
       <main className="mx-auto w-full max-w-6xl p-8">
-        <h1 className="text-3xl font-bold">Version not found</h1>
+        <h1 className="text-3xl font-bold">
+          Version not found
+        </h1>
 
         <Link
           href={`/films/${id}/allversions`}
@@ -51,7 +69,7 @@ export default async function AllVersionDetailPage({
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl p-8">
+    <main className="mx-auto w-full max-w-5xl p-8">
       <Link
         href={`/films/${allVersion.filmId}/allversions`}
         className="text-sm text-zinc-500 hover:text-zinc-900"
@@ -64,7 +82,7 @@ export default async function AllVersionDetailPage({
           Version {allVersion.version}
         </p>
 
-        <h1 className="mt-1 text-4xl font-bold">
+        <h1 className="mt-1 text-4xl font-bold tracking-tight">
           {allVersion.title}
         </h1>
 
@@ -73,50 +91,19 @@ export default async function AllVersionDetailPage({
         </p>
       </div>
 
-      <div className="mt-8 space-y-8">
-        <section>
-          <h2 className="text-xl font-semibold">Logline</h2>
-          <p className="mt-3 leading-7 text-zinc-700">
-            {allVersion.logline || "Not added yet"}
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold">
-            Short synopsis
-          </h2>
-          <p className="mt-3 leading-7 text-zinc-700">
-            {allVersion.shortSynopsis || "Not added yet"}
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold">
-            Long synopsis
-          </h2>
-          <p className="mt-3 whitespace-pre-wrap leading-7 text-zinc-700">
-            {allVersion.longSynopsis || "Not added yet"}
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold">
-            Director statement
-          </h2>
-          <p className="mt-3 whitespace-pre-wrap leading-7 text-zinc-700">
-            {allVersion.directorStatement || "Not added yet"}
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold">
-            Producer statement
-          </h2>
-          <p className="mt-3 whitespace-pre-wrap leading-7 text-zinc-700">
-            {allVersion.producerStatement || "Not added yet"}
-          </p>
-        </section>
-      </div>
+      <EditVersionForm
+        filmId={allVersion.filmId.toString()}
+        versionId={allVersion.id.toString()}
+        initialData={{
+          title: allVersion.title,
+          logline: allVersion.logline,
+          shortSynopsis: allVersion.shortSynopsis,
+          longSynopsis: allVersion.longSynopsis,
+          directorStatement: allVersion.directorStatement,
+          producerStatement: allVersion.producerStatement,
+          trailerUrl: allVersion.trailerUrl,
+        }}
+      />
     </main>
   );
 }

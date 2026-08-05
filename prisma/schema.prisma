@@ -82,3 +82,36 @@ model AllVersion {
   @@index([filmId])
   @@map("all_versions")
 }
+
+model Event {
+  id          BigInt   @id @default(autoincrement())
+  name        String
+  country     String?
+  city        String?
+  websiteUrl  String?
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+  opportunities SubmissionOpportunity[]
+
+  @@map("events")
+}
+
+model SubmissionOpportunity {
+  id          BigInt @id @default(autoincrement())
+  eventId     BigInt
+  event       Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  deadline    DateTime?
+  fee         Decimal? @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([eventId])
+  @@map("submission_opportunities")
+}

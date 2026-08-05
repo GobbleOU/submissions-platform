@@ -81,3 +81,65 @@ export async function PUT(
     );
   }
 }
+export async function DELETE(
+  request: Request,
+  {
+    params,
+  }: {
+    params: Promise<{
+      id: string;
+      versionId: string;
+    }>;
+  }
+) {
+  const { id, versionId } = await params;
+
+  const supabase = await createServerSupabase();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const existingVersion = await prisma.allVersion.findFirst({
+      where: {
+        id: BigInt(versionId),
+        filmId: BigInt(id),
+        film: {
+          ownerId: session.user.id,
+        },
+      },
+    });
+
+    if (!existingVersion) {
+      return NextResponse.json(
+        { error: "Version not found" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.allVersion.delete({
+      where: {
+        id: existingVersion.id,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error("Failed to delete version:", error);
+
+    return NextResponse.json(
+      { error: "Failed to delete version" },
+      { status: 500 }
+    );
+  }
+}

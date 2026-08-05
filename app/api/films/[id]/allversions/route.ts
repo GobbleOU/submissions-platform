@@ -58,7 +58,7 @@ export async function POST(
       data: {
         filmId: film.id,
         version: newVersionNumber,
-        title: `Version ${newVersionNumber}`,
+        title: latestVersion?.title ?? film.title,
 
         logline: latestVersion?.logline ?? film.logline,
         shortSynopsis:

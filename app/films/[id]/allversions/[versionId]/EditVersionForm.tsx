@@ -76,9 +76,8 @@ export default function EditVersionForm({
         );
       }
 
-      router.push(
-        `/films/${filmId}/allversions/${versionId}`
-      );
+      setIsSaving(false);
+router.refresh();
 
       router.refresh();
     } catch (error) {
@@ -104,11 +103,11 @@ export default function EditVersionForm({
 
         <div className="mt-5">
           <label
-            htmlFor="title"
-            className="text-sm font-medium text-zinc-700"
-          >
-            Version title
-          </label>
+  htmlFor="title"
+  className="text-sm font-medium text-zinc-700"
+>
+  Title
+</label>
 
           <input
             id="title"

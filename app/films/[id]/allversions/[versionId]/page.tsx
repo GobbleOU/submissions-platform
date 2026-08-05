@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { createServerSupabase } from "@/lib/supabase-server";
 import EditVersionForm from "./EditVersionForm";
+import DeleteVersionButton from "@/components/DeleteVersionButton";
 
 export default async function AllVersionDetailPage({
   params,
@@ -69,41 +70,48 @@ export default async function AllVersionDetailPage({
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
-      <Link
-        href={`/films/${allVersion.filmId}/allversions`}
-        className="text-sm text-zinc-500 hover:text-zinc-900"
-      >
-        ← Back to versions
-      </Link>
+  <main className="mx-auto w-full max-w-5xl p-8">
+    <Link
+      href={`/films/${allVersion.filmId}/allversions`}
+      className="text-sm text-zinc-500 hover:text-zinc-900"
+    >
+      ← Back to versions
+    </Link>
 
-      <div className="mt-6 border-b border-zinc-200 pb-6">
-        <p className="text-sm font-medium text-zinc-500">
-          Version {allVersion.version}
-        </p>
+    <div className="mt-6 border-b border-zinc-200 pb-6">
+      <p className="text-sm font-medium text-zinc-500">
+        Version {allVersion.version}
+      </p>
 
-        <h1 className="mt-1 text-4xl font-bold tracking-tight">
-          {allVersion.title}
-        </h1>
+      <h1 className="mt-1 text-4xl font-bold tracking-tight">
+        {allVersion.title}
+      </h1>
 
-        <p className="mt-2 text-zinc-600">
-          {allVersion.film.title}
-        </p>
-      </div>
+      <p className="mt-2 text-zinc-600">
+        {allVersion.film.title}
+      </p>
+    </div>
 
-      <EditVersionForm
+    <div className="mt-6 flex justify-end">
+      <DeleteVersionButton
         filmId={allVersion.filmId.toString()}
         versionId={allVersion.id.toString()}
-        initialData={{
-          title: allVersion.title,
-          logline: allVersion.logline,
-          shortSynopsis: allVersion.shortSynopsis,
-          longSynopsis: allVersion.longSynopsis,
-          directorStatement: allVersion.directorStatement,
-          producerStatement: allVersion.producerStatement,
-          trailerUrl: allVersion.trailerUrl,
-        }}
       />
-    </main>
-  );
+    </div>
+
+    <EditVersionForm
+      filmId={allVersion.filmId.toString()}
+      versionId={allVersion.id.toString()}
+      initialData={{
+        title: allVersion.title,
+        logline: allVersion.logline,
+        shortSynopsis: allVersion.shortSynopsis,
+        longSynopsis: allVersion.longSynopsis,
+        directorStatement: allVersion.directorStatement,
+        producerStatement: allVersion.producerStatement,
+        trailerUrl: allVersion.trailerUrl,
+      }}
+    />
+  </main>
+);
 }

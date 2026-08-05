@@ -48,8 +48,16 @@ export default async function AllVersionDetailPage({
       },
     },
     include: {
-      film: true,
+  film: {
+    include: {
+      _count: {
+        select: {
+          allVersions: true,
+        },
+      },
     },
+  },
+},
   });
 
   if (!allVersion) {
@@ -94,9 +102,10 @@ export default async function AllVersionDetailPage({
 
     <div className="mt-6 flex justify-end">
       <DeleteVersionButton
-        filmId={allVersion.filmId.toString()}
-        versionId={allVersion.id.toString()}
-      />
+  filmId={allVersion.filmId.toString()}
+  versionId={allVersion.id.toString()}
+  canDelete={allVersion.film._count.allVersions > 1}
+/>
     </div>
 
     <EditVersionForm

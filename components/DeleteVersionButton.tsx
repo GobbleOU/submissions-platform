@@ -6,9 +6,11 @@ import { useState } from "react";
 export default function DeleteVersionButton({
   filmId,
   versionId,
+  canDelete,
 }: {
   filmId: string;
   versionId: string;
+  canDelete: boolean;
 }) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -57,14 +59,18 @@ export default function DeleteVersionButton({
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={deleteVersion}
-        disabled={isDeleting}
-        className="rounded border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isDeleting ? "Deleting..." : "Delete version"}
-      </button>
+     <button
+  type="button"
+  onClick={deleteVersion}
+  disabled={isDeleting || !canDelete}
+  className="rounded border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  {!canDelete
+    ? "Cannot delete only version"
+    : isDeleting
+      ? "Deleting..."
+      : "Delete version"}
+</button>
 
       {error && (
         <p className="mt-2 text-sm text-red-600">

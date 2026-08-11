@@ -70,7 +70,14 @@ const films = await prisma.film.findMany({
         </section>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {films.map((film) => (
+          {films.map((film: {
+  id: bigint;
+  year: number;
+  title: string;
+  logline: string;
+  genre: string;
+  runtime: number;
+}) => (
             <article
               key={film.id.toString()}
               className="rounded-lg border border-zinc-200 p-5"

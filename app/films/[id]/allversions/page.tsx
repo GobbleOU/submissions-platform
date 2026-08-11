@@ -117,7 +117,12 @@ export default async function AllVersionsPage({
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {film.allVersions.map((allVersion) => (
+            {film.allVersions.map((allVersion: {
+  id: bigint;
+  version: number;
+  title: string;
+  updatedAt: Date;
+}) => (
               <Link
                 key={allVersion.id.toString()}
                 href={`/films/${film.id}/allversions/${allVersion.id}`}

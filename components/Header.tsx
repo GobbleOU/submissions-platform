@@ -24,7 +24,7 @@ export default function Header() {
             Submissions
           </Link>
           <Link
-            href="/films/new"
+            href="/films/new/start"
             className="rounded bg-zinc-900 px-3 py-2 text-white hover:bg-zinc-700"
           >
             New film

@@ -17,7 +17,7 @@ export default function Home() {
           <Link href="/films" className="rounded bg-zinc-900 px-5 py-3 font-medium text-white hover:bg-zinc-700">
             View your films
           </Link>
-          <Link href="/films/new" className="rounded border border-zinc-300 bg-white px-5 py-3 font-medium hover:bg-zinc-100">
+          <Link href="/films/new/start" className="rounded border border-zinc-300 bg-white px-5 py-3 font-medium hover:bg-zinc-100">
             Create a film
           </Link>
         </div>

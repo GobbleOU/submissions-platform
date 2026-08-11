@@ -1,11 +1,18 @@
 "use client";
 
-///This page now takes care of the uploaded file on the database 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "@/components/SupabaseProvider";
 
 export default function NewFilmPage() {
+  return (
+    <Suspense fallback={<div className="p-8">Loading...</div>}>
+      <NewFilmForm />
+    </Suspense>
+  );
+}
+
+function NewFilmForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const session = useSession();
@@ -18,21 +25,24 @@ export default function NewFilmPage() {
 
   const [form, setForm] = useState({
     title: searchParams.get("title") ?? "",
-originalTitle: searchParams.get("originalTitle") ?? "",
-year: searchParams.get("year") ?? "",
-runtime: searchParams.get("runtime") ?? "",
-genre: searchParams.get("genre") ?? "",
-format: searchParams.get("format") ?? "",
-countryProduction: searchParams.get("countryProduction") ?? "",
-languages: searchParams.get("languages") ?? "",
-director: searchParams.get("director") ?? "",
-productionCompany: searchParams.get("productionCompany") ?? "",
-logline: searchParams.get("logline") ?? "",
-shortSynopsis: searchParams.get("shortSynopsis") ?? "",
-completionDate: searchParams.get("completionDate") ?? "",
-worldPremiereStatus: searchParams.get("worldPremiereStatus") ?? "",
-internationalPremiereStatus: searchParams.get("internationalPremiereStatus") ?? "",
-previousFestivalSelections: searchParams.get("previousFestivalSelections") ?? "",
+    originalTitle: searchParams.get("originalTitle") ?? "",
+    year: searchParams.get("year") ?? "",
+    runtime: searchParams.get("runtime") ?? "",
+    genre: searchParams.get("genre") ?? "",
+    format: searchParams.get("format") ?? "",
+    countryProduction: searchParams.get("countryProduction") ?? "",
+    languages: searchParams.get("languages") ?? "",
+    director: searchParams.get("director") ?? "",
+    productionCompany: searchParams.get("productionCompany") ?? "",
+    logline: searchParams.get("logline") ?? "",
+    shortSynopsis: searchParams.get("shortSynopsis") ?? "",
+    completionDate: searchParams.get("completionDate") ?? "",
+    worldPremiereStatus:
+      searchParams.get("worldPremiereStatus") ?? "",
+    internationalPremiereStatus:
+      searchParams.get("internationalPremiereStatus") ?? "",
+    previousFestivalSelections:
+      searchParams.get("previousFestivalSelections") ?? "",
   });
 
   function updateField(
@@ -44,44 +54,36 @@ previousFestivalSelections: searchParams.get("previousFestivalSelections") ?? ""
     });
   }
 
-function formatLabel(field: string) {
-  return field
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (str) => str.toUpperCase());
-}
+  function formatLabel(field: string) {
+    return field
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase());
+  }
 
+  async function submitFilm(e: React.FormEvent) {
+    e.preventDefault();
 
- async function submitFilm(e: React.FormEvent) {
-  e.preventDefault();
+    const res = await fetch("/api/films", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...form,
+        year: Number(form.year),
+        runtime: Number(form.runtime),
+      }),
+    });
 
-  console.log("Submitting film", form);
+    const data = await res.json();
 
-  const res = await fetch("/api/films", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      ...form,
-      year: Number(form.year),
-      runtime: Number(form.runtime),
-    }),
-  });
+    if (!res.ok) {
+      alert("Failed to create film");
+      return;
+    }
 
-  const data = await res.json();
-
-  console.log("Response:", res.status, data);
-
-  if (!res.ok) {
-  alert("Failed");
-  return;
-}
-
-router.push(`/films/${data.id}`);
-
-  alert("Film created!");
-
-}
+    router.push(`/films/${data.id}`);
+  }
 
   return (
     <main className="p-8 max-w-5xl">
@@ -90,64 +92,60 @@ router.push(`/films/${data.id}`);
       </h1>
 
       <form onSubmit={submitFilm} className="space-y-8">
-      <h2 className="text-xl font-semibold">
-         Basic Information
-      </h2>
+        <h2 className="text-xl font-semibold">
+          Basic Information
+        </h2>
 
-  <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            "title",
+            "originalTitle",
+            "year",
+            "runtime",
+            "genre",
+            "format",
+          ].map((field) => (
+            <input
+              key={field}
+              name={field}
+              type={
+                field === "year" || field === "runtime"
+                  ? "number"
+                  : "text"
+              }
+              placeholder={formatLabel(field)}
+              value={form[field as keyof typeof form]}
+              onChange={updateField}
+              className="border p-2 w-full rounded"
+            />
+          ))}
+        </div>
 
-    {[
-  "title",
-  "originalTitle",
-  "year",
-  "runtime",
-  "genre",
-  "format",
-].map((field) => (
-      <input
-        key={field}
-        name={field}
-        type={
-          field === "year" || field === "runtime"
-            ? "number"
-            : "text"
-        }
-        placeholder={formatLabel(field)}
-        value={form[field as keyof typeof form]}
-        onChange={updateField}
-        className="border p-2 w-full rounded"
-      />
-    ))}
+        <h2 className="text-xl font-semibold mt-8">
+          Production
+        </h2>
 
-  </div>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            "countryProduction",
+            "languages",
+            "director",
+            "productionCompany",
+            "completionDate",
+          ].map((field) => (
+            <input
+              key={field}
+              name={field}
+              type="text"
+              placeholder={formatLabel(field)}
+              value={form[field as keyof typeof form]}
+              onChange={updateField}
+              className="border p-2 w-full rounded"
+            />
+          ))}
+        </div>
 
-   <h2 className="text-xl font-semibold mt-8">
-    Production
-  </h2>
-
-  <div className="grid grid-cols-2 gap-4">
-
-    {[
-      "countryProduction",
-      "languages",
-      "director",
-      "productionCompany",
-      "completionDate",
-    ].map((field) => (
-      <input
-        key={field}
-        name={field}
-        type="text"
-        placeholder={formatLabel(field)}
-        value={form[field as keyof typeof form]}
-        onChange={updateField}
-        className="border p-2 w-full rounded"
-      />
-    ))}
-
-  </div>
-
-  <textarea
+        <textarea
           name="logline"
           placeholder="Logline"
           value={form.logline}
@@ -163,38 +161,31 @@ router.push(`/films/${data.id}`);
           className="border p-2 w-full rounded"
         />
 
-   <h2 className="text-xl font-semibold mt-8">
-    Festival Information
-  </h2>
+        <h2 className="text-xl font-semibold mt-8">
+          Festival Information
+        </h2>
 
-  <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            "worldPremiereStatus",
+            "internationalPremiereStatus",
+            "previousFestivalSelections",
+          ].map((field) => (
+            <input
+              key={field}
+              name={field}
+              type="text"
+              placeholder={formatLabel(field)}
+              value={form[field as keyof typeof form]}
+              onChange={updateField}
+              className="border p-2 w-full rounded"
+            />
+          ))}
+        </div>
 
-    {[
-      "worldPremiereStatus",
-      "internationalPremiereStatus",
-      "previousFestivalSelections",
-    ].map((field) => (
-      <input
-        key={field}
-        name={field}
-        type="text"
-        placeholder={formatLabel(field)}
-        value={form[field as keyof typeof form]}
-        onChange={updateField}
-        className="border p-2 w-full rounded"
-      />
-    ))}
-
-  </div>
-
-        
-
-        <button
-          className="bg-black text-white px-4 py-2 rounded"
-        >
+        <button className="bg-black text-white px-4 py-2 rounded">
           Save Film
         </button>
-
       </form>
     </main>
   );

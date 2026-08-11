@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createServerSupabase } from "@/lib/supabase-server";
 
@@ -20,14 +21,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Temporary debugging
-    console.log("SUPABASE USER ID:", session.user.id);
-    console.log("SUPABASE USER EMAIL:", session.user.email);
-
-    const allUsers = await prisma.user.findMany();
-
-    console.log("PRISMA USERS:", allUsers);
-
     // Make sure the authenticated Supabase user
     // exists in our Prisma users table
     const user = await prisma.user.upsert({
@@ -43,56 +36,57 @@ export async function POST(request: Request) {
       },
     });
 
-    const film = await prisma.$transaction(async (tx) => {
-      const createdFilm = await tx.film.create({
-        data: {
-          ownerId: user.id,
+    const film = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const createdFilm = await tx.film.create({
+          data: {
+            ownerId: user.id,
 
-          title: body.title,
-          originalTitle: body.originalTitle,
+            title: body.title,
+            originalTitle: body.originalTitle,
 
-          year: Number(body.year),
-          runtime: Number(body.runtime),
+            year: Number(body.year),
+            runtime: Number(body.runtime),
 
-          genre: body.genre,
-          format: body.format,
-          countryProduction: body.countryProduction,
-          languages: body.languages,
+            genre: body.genre,
+            format: body.format,
+            countryProduction: body.countryProduction,
+            languages: body.languages,
 
-          completionDate: body.completionDate
-            ? new Date(body.completionDate)
-            : null,
+            completionDate: body.completionDate
+              ? new Date(body.completionDate)
+              : null,
 
-          worldPremiereStatus:
-            body.worldPremiereStatus || null,
+            worldPremiereStatus:
+              body.worldPremiereStatus || null,
 
-          internationalPremiereStatus:
-            body.internationalPremiereStatus || null,
+            internationalPremiereStatus:
+              body.internationalPremiereStatus || null,
 
-          previousFestivalSelections:
-            body.previousFestivalSelections || null,
+            previousFestivalSelections:
+              body.previousFestivalSelections || null,
 
-          director: body.director,
-          productionCompany: body.productionCompany,
+            director: body.director,
+            productionCompany: body.productionCompany,
 
-          logline: body.logline,
-          shortSynopsis: body.shortSynopsis,
-        },
-      });
+            logline: body.logline,
+            shortSynopsis: body.shortSynopsis,
+          },
+        });
 
-     await tx.allVersion.create({
-  data: {
-    filmId: createdFilm.id,
-    version: 1,
-    title: "Version 1",
+        await tx.allVersion.create({
+          data: {
+            filmId: createdFilm.id,
+            version: 1,
+            title: createdFilm.title,
+            logline: createdFilm.logline,
+            shortSynopsis: createdFilm.shortSynopsis,
+          },
+        });
 
-    logline: createdFilm.logline,
-    shortSynopsis: createdFilm.shortSynopsis,
-  },
-});
-
-      return createdFilm;
-    });
+        return createdFilm;
+      }
+    );
 
     return NextResponse.json(
       JSON.parse(

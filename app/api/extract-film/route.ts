@@ -152,17 +152,7 @@ console.log("TOTAL COST: $", totalCost.toFixed(6));
 console.log("Extracted film:", extractedFilm);
 console.log("===================================");
 
-    return NextResponse.json({
-  ...extractedFilm,
-
-  _ai: {
-    model: "gpt-5.6-luna",
-    inputTokens,
-    outputTokens,
-    totalTokens,
-    estimatedCostUsd: Number(totalCost.toFixed(6)),
-  },
-});
+   return NextResponse.json(extractedFilm);
   } catch (error) {
     console.error("extract-film error:", error);
 

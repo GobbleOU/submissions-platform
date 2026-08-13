@@ -1,16 +1,15 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/components/SupabaseProvider";
-import { supabase } from "@/lib/supabase";
-
-
-///This is the file in charge of running the upload process via the UploadFilmPage function.
 
 export default function UploadFilmPage() {
   const router = useRouter();
   const session = useSession();
+
   const [file, setFile] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (session === null) {
@@ -27,69 +26,85 @@ export default function UploadFilmPage() {
   }
 
   async function uploadFile() {
-  if (!file) {
-    alert("Please select a file");
-    return;
+    if (!file) {
+      alert("Please select a file");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+
+      // Send the file directly to the extraction API.
+      // The original file is NOT stored permanently.
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/extract-document", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error("Document validation/extraction failed:", result);
+
+        alert(
+          result.error ||
+            "The document could not be processed."
+        );
+
+        return;
+      }
+
+      console.log("Document extracted successfully.");
+
+      // Send the validated extracted text to the AI.
+      const aiResponse = await fetch("/api/extract-film", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: result.text,
+        }),
+      });
+
+      const aiResult = await aiResponse.json();
+
+      if (!aiResponse.ok) {
+        console.error("AI extraction failed:", aiResult);
+
+        alert(
+          aiResult.error ||
+            "Film information could not be extracted."
+        );
+
+        return;
+      }
+
+      const params = new URLSearchParams();
+
+      Object.entries(aiResult).forEach(([key, value]) => {
+        if (
+          value !== null &&
+          value !== undefined
+        ) {
+          params.set(key, String(value));
+        }
+      });
+
+      router.push(`/films/new?${params.toString()}`);
+    } catch (error) {
+      console.error("Upload processing error:", error);
+
+      alert(
+        "Something went wrong while processing the document."
+      );
+    } finally {
+      setIsProcessing(false);
+    }
   }
-
-  const filePath = `uploads/${Date.now()}-${file.name}`;
-
-  const { data, error } = await supabase.storage
-    .from("allversions")
-    .upload(filePath, file);
-
-  if (error) {
-    console.error(error);
-    alert("Upload failed");
-    return;
-  }
-
-  console.log("Upload successful:", data);
-
-const { data: publicUrlData } = supabase.storage
-  .from("allversions")
-  .getPublicUrl(filePath);
-
-console.log("Public URL:", publicUrlData.publicUrl);
-
-// Send the uploaded file to the extraction API
-const formData = new FormData();
-formData.append("file", file);
-
-const response = await fetch("/api/extract-document", {
-  method: "POST",
-  body: formData,
-});
-
-const result = await response.json();
-
-console.log("Extracted text:", result.text);
-
-// Send the extracted text to the AI
-const aiResponse = await fetch("/api/extract-film", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    text: result.text,
-  }),
-});
-
-const aiResult = await aiResponse.json();
-
-const params = new URLSearchParams();
-
-Object.entries(aiResult).forEach(([key, value]) => {
-  if (value !== null && value !== undefined) {
-    params.set(key, String(value));
-  }
-});
-
-router.push(`/films/new?${params.toString()}`);
-
-alert("Upload successful!");
-}
 
   return (
     <main className="p-8 max-w-xl">
@@ -98,11 +113,11 @@ alert("Upload successful!");
       </h1>
 
       <div className="space-y-4">
-
         <input
           type="file"
-          accept=".pdf,.doc,.docx"
+          accept=".pdf,.docx"
           onChange={handleFileChange}
+          disabled={isProcessing}
           className="border p-2 w-full rounded"
         />
 
@@ -115,11 +130,13 @@ alert("Upload successful!");
 
         <button
           onClick={uploadFile}
-          className="bg-black text-white px-4 py-2 rounded"
+          disabled={isProcessing}
+          className="bg-black text-white px-4 py-2 rounded disabled:opacity-50"
         >
-          Upload
+          {isProcessing
+            ? "Processing..."
+            : "Upload"}
         </button>
-
       </div>
     </main>
   );

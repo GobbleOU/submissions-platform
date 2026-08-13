@@ -5,8 +5,11 @@ export const runtime = "nodejs";
 import mammoth from "mammoth";
 import pdf from "pdf-parse/lib/pdf-parse.js";
 
-// This file extracts information from uploaded DOCX and PDF files
-// and turns it into raw text data for the AI to read.
+import { validateDocument } from "@/lib/document-validation";
+
+// This file extracts information from uploaded DOCX and PDF files,
+// then validates the extracted document before it can continue
+// to the AI extraction step.
 
 export async function POST(request: Request) {
   try {
@@ -33,41 +36,72 @@ export async function POST(request: Request) {
       file.type === "application/pdf" ||
       file.name.toLowerCase().endsWith(".pdf");
 
+    // Reject anything that is not PDF or DOCX
+    if (!isDocx && !isPdf) {
+      return NextResponse.json(
+        {
+          error: "Only PDF and DOCX files are supported.",
+        },
+        { status: 400 }
+      );
+    }
+
+    let extractedText = "";
+    let messages: unknown[] = [];
+
     // DOCX extraction
     if (isDocx) {
       const result = await mammoth.extractRawText({ buffer });
 
-      console.log("DOCX text length:", result.value.length);
-      console.log(result.value.slice(0, 500));
+      extractedText = result.value;
+      messages = result.messages;
 
-      return NextResponse.json({
-        success: true,
-        text: result.value,
-        messages: result.messages,
-      });
+      console.log("DOCX text length:", extractedText.length);
+      console.log(extractedText.slice(0, 500));
     }
 
     // PDF extraction
     if (isPdf) {
       const result = await pdf(buffer);
 
-      console.log("PDF text length:", result.text.length);
-      console.log(result.text.slice(0, 500));
+      extractedText = result.text;
+      messages = [];
 
-      return NextResponse.json({
-        success: true,
-        text: result.text,
-        messages: [],
-      });
+      console.log("PDF text length:", extractedText.length);
+      console.log(extractedText.slice(0, 500));
     }
 
-    return NextResponse.json(
-      {
-        error: "Only PDF and DOCX files are supported",
-      },
-      { status: 400 }
-    );
+    // Free server-side validation.
+    // No OpenAI request happens here.
+    const validation = validateDocument({
+      fileName: file.name,
+      mimeType: file.type,
+      fileSize: file.size,
+      extractedText,
+    });
 
+    console.log("Document validation:", validation);
+
+    // Stop the document here if it fails validation.
+    // The frontend will never receive text to send to Luna.
+    if (!validation.valid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: validation.reason,
+          warnings: validation.warnings,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Document passed validation.
+    return NextResponse.json({
+      success: true,
+      text: extractedText,
+      messages,
+      warnings: validation.warnings,
+    });
   } catch (error) {
     console.error("Extraction error:", error);
 

@@ -1,10 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "@/components/SupabaseProvider";
 
 export default function NewFilmPage() {
+  return (
+    <Suspense fallback={<div className="p-8">Loading...</div>}>
+      <NewFilmForm />
+    </Suspense>
+  );
+}
+
+function NewFilmForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const session = useSession();
@@ -29,7 +37,8 @@ export default function NewFilmPage() {
     logline: searchParams.get("logline") ?? "",
     shortSynopsis: searchParams.get("shortSynopsis") ?? "",
     completionDate: searchParams.get("completionDate") ?? "",
-    worldPremiereStatus: searchParams.get("worldPremiereStatus") ?? "",
+    worldPremiereStatus:
+      searchParams.get("worldPremiereStatus") ?? "",
     internationalPremiereStatus:
       searchParams.get("internationalPremiereStatus") ?? "",
     previousFestivalSelections:
@@ -82,11 +91,11 @@ export default function NewFilmPage() {
 
   return (
     <main className="p-8 max-w-5xl">
-      <h1 className="text-3xl font-bold mb-8">Create Film</h1>
+      <h1 className="text-3xl font-bold mb-8">
+        Create Film
+      </h1>
 
       <form onSubmit={submitFilm} className="space-y-10">
-        {/* BASIC INFORMATION */}
-
         <section>
           <h2 className="text-xl font-semibold mb-5">
             Basic Information
@@ -126,8 +135,6 @@ export default function NewFilmPage() {
           </div>
         </section>
 
-        {/* PRODUCTION */}
-
         <section>
           <h2 className="text-xl font-semibold mb-5">
             Production
@@ -165,8 +172,6 @@ export default function NewFilmPage() {
             ))}
           </div>
         </section>
-
-        {/* STORY */}
 
         <section>
           <h2 className="text-xl font-semibold mb-5">
@@ -211,8 +216,6 @@ export default function NewFilmPage() {
             </div>
           </div>
         </section>
-
-        {/* FESTIVAL INFORMATION */}
 
         <section>
           <h2 className="text-xl font-semibold mb-5">

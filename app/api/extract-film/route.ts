@@ -132,10 +132,37 @@ export async function POST(request: Request) {
 
     const extractedFilm = JSON.parse(response.output_text);
 
-    console.log("AI film extraction:", extractedFilm);
-    console.log("OpenAI usage:", response.usage);
+    const inputTokens = response.usage?.input_tokens ?? 0;
+const outputTokens = response.usage?.output_tokens ?? 0;
+const totalTokens = response.usage?.total_tokens ?? 0;
 
-    return NextResponse.json(extractedFilm);
+const inputCost = (inputTokens / 1_000_000) * 1;
+const outputCost = (outputTokens / 1_000_000) * 6;
+const totalCost = inputCost + outputCost;
+
+console.log("========== AI EXTRACTION ==========");
+console.log("Model: gpt-5.6-luna");
+console.log("Source characters:", text.length);
+console.log("Input tokens:", inputTokens);
+console.log("Output tokens:", outputTokens);
+console.log("Total tokens:", totalTokens);
+console.log("Input cost: $", inputCost.toFixed(6));
+console.log("Output cost: $", outputCost.toFixed(6));
+console.log("TOTAL COST: $", totalCost.toFixed(6));
+console.log("Extracted film:", extractedFilm);
+console.log("===================================");
+
+    return NextResponse.json({
+  ...extractedFilm,
+
+  _ai: {
+    model: "gpt-5.6-luna",
+    inputTokens,
+    outputTokens,
+    totalTokens,
+    estimatedCostUsd: Number(totalCost.toFixed(6)),
+  },
+});
   } catch (error) {
     console.error("extract-film error:", error);
 

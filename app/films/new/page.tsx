@@ -1,18 +1,10 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "@/components/SupabaseProvider";
 
 export default function NewFilmPage() {
-  return (
-    <Suspense fallback={<div className="p-8">Loading...</div>}>
-      <NewFilmForm />
-    </Suspense>
-  );
-}
-
-function NewFilmForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const session = useSession();
@@ -37,8 +29,7 @@ function NewFilmForm() {
     logline: searchParams.get("logline") ?? "",
     shortSynopsis: searchParams.get("shortSynopsis") ?? "",
     completionDate: searchParams.get("completionDate") ?? "",
-    worldPremiereStatus:
-      searchParams.get("worldPremiereStatus") ?? "",
+    worldPremiereStatus: searchParams.get("worldPremiereStatus") ?? "",
     internationalPremiereStatus:
       searchParams.get("internationalPremiereStatus") ?? "",
     previousFestivalSelections:
@@ -63,6 +54,8 @@ function NewFilmForm() {
   async function submitFilm(e: React.FormEvent) {
     e.preventDefault();
 
+    console.log("Submitting film", form);
+
     const res = await fetch("/api/films", {
       method: "POST",
       headers: {
@@ -77,8 +70,10 @@ function NewFilmForm() {
 
     const data = await res.json();
 
+    console.log("Response:", res.status, data);
+
     if (!res.ok) {
-      alert("Failed to create film");
+      alert("Failed");
       return;
     }
 
@@ -87,103 +82,174 @@ function NewFilmForm() {
 
   return (
     <main className="p-8 max-w-5xl">
-      <h1 className="text-3xl font-bold mb-6">
-        Create Film
-      </h1>
+      <h1 className="text-3xl font-bold mb-8">Create Film</h1>
 
-      <form onSubmit={submitFilm} className="space-y-8">
-        <h2 className="text-xl font-semibold">
-          Basic Information
-        </h2>
+      <form onSubmit={submitFilm} className="space-y-10">
+        {/* BASIC INFORMATION */}
 
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            "title",
-            "originalTitle",
-            "year",
-            "runtime",
-            "genre",
-            "format",
-          ].map((field) => (
-            <input
-              key={field}
-              name={field}
-              type={
-                field === "year" || field === "runtime"
-                  ? "number"
-                  : "text"
-              }
-              placeholder={formatLabel(field)}
-              value={form[field as keyof typeof form]}
-              onChange={updateField}
-              className="border p-2 w-full rounded"
-            />
-          ))}
-        </div>
+        <section>
+          <h2 className="text-xl font-semibold mb-5">
+            Basic Information
+          </h2>
 
-        <h2 className="text-xl font-semibold mt-8">
-          Production
-        </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[
+              "title",
+              "originalTitle",
+              "year",
+              "runtime",
+              "genre",
+              "format",
+            ].map((field) => (
+              <div key={field}>
+                <label
+                  htmlFor={field}
+                  className="block mb-2 text-sm font-medium"
+                >
+                  {formatLabel(field)}
+                </label>
 
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            "countryProduction",
-            "languages",
-            "director",
-            "productionCompany",
-            "completionDate",
-          ].map((field) => (
-            <input
-              key={field}
-              name={field}
-              type="text"
-              placeholder={formatLabel(field)}
-              value={form[field as keyof typeof form]}
-              onChange={updateField}
-              className="border p-2 w-full rounded"
-            />
-          ))}
-        </div>
+                <input
+                  id={field}
+                  name={field}
+                  type={
+                    field === "year" || field === "runtime"
+                      ? "number"
+                      : "text"
+                  }
+                  value={form[field as keyof typeof form]}
+                  onChange={updateField}
+                  className="border border-zinc-300 p-3 w-full rounded"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
 
-        <textarea
-          name="logline"
-          placeholder="Logline"
-          value={form.logline}
-          onChange={updateField}
-          className="border p-2 w-full rounded"
-        />
+        {/* PRODUCTION */}
 
-        <textarea
-          name="shortSynopsis"
-          placeholder="Short Synopsis"
-          value={form.shortSynopsis}
-          onChange={updateField}
-          className="border p-2 w-full rounded"
-        />
+        <section>
+          <h2 className="text-xl font-semibold mb-5">
+            Production
+          </h2>
 
-        <h2 className="text-xl font-semibold mt-8">
-          Festival Information
-        </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[
+              "countryProduction",
+              "languages",
+              "director",
+              "productionCompany",
+              "completionDate",
+            ].map((field) => (
+              <div key={field}>
+                <label
+                  htmlFor={field}
+                  className="block mb-2 text-sm font-medium"
+                >
+                  {formatLabel(field)}
+                </label>
 
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            "worldPremiereStatus",
-            "internationalPremiereStatus",
-            "previousFestivalSelections",
-          ].map((field) => (
-            <input
-              key={field}
-              name={field}
-              type="text"
-              placeholder={formatLabel(field)}
-              value={form[field as keyof typeof form]}
-              onChange={updateField}
-              className="border p-2 w-full rounded"
-            />
-          ))}
-        </div>
+                <input
+                  id={field}
+                  name={field}
+                  type={
+                    field === "completionDate"
+                      ? "date"
+                      : "text"
+                  }
+                  value={form[field as keyof typeof form]}
+                  onChange={updateField}
+                  className="border border-zinc-300 p-3 w-full rounded"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
 
-        <button className="bg-black text-white px-4 py-2 rounded">
+        {/* STORY */}
+
+        <section>
+          <h2 className="text-xl font-semibold mb-5">
+            Story
+          </h2>
+
+          <div className="space-y-5">
+            <div>
+              <label
+                htmlFor="logline"
+                className="block mb-2 text-sm font-medium"
+              >
+                Logline
+              </label>
+
+              <textarea
+                id="logline"
+                name="logline"
+                value={form.logline}
+                onChange={updateField}
+                rows={4}
+                className="border border-zinc-300 p-3 w-full rounded"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="shortSynopsis"
+                className="block mb-2 text-sm font-medium"
+              >
+                Short Synopsis
+              </label>
+
+              <textarea
+                id="shortSynopsis"
+                name="shortSynopsis"
+                value={form.shortSynopsis}
+                onChange={updateField}
+                rows={7}
+                className="border border-zinc-300 p-3 w-full rounded"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* FESTIVAL INFORMATION */}
+
+        <section>
+          <h2 className="text-xl font-semibold mb-5">
+            Festival Information
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[
+              "worldPremiereStatus",
+              "internationalPremiereStatus",
+              "previousFestivalSelections",
+            ].map((field) => (
+              <div key={field}>
+                <label
+                  htmlFor={field}
+                  className="block mb-2 text-sm font-medium"
+                >
+                  {formatLabel(field)}
+                </label>
+
+                <input
+                  id={field}
+                  name={field}
+                  type="text"
+                  value={form[field as keyof typeof form]}
+                  onChange={updateField}
+                  className="border border-zinc-300 p-3 w-full rounded"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <button
+          type="submit"
+          className="bg-black text-white px-6 py-3 rounded font-medium hover:bg-zinc-800"
+        >
           Save Film
         </button>
       </form>

@@ -1,43 +1,50 @@
 import { NextResponse } from "next/server";
+import OpenAI from "openai";
+
+export const runtime = "nodejs";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-
-    console.log("Received body:", body);
-
     const text = body.text;
 
     if (typeof text !== "string" || text.trim() === "") {
       return NextResponse.json(
-        {
-          error: "Missing or invalid 'text' field.",
-          received: body,
-        },
+        { error: "Missing or invalid 'text' field." },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({
-      title: "Coastline",
-      originalTitle: "Ligne de Côte",
-      year: 2025,
-      runtime: 97,
-      genre: "Drama",
-      format: "DCP",
-      countryProduction: "France, Belgium",
-      languages: "French (English subtitles)",
-      completionDate: "2025-03-15",
-      worldPremiereStatus: "World Premiere",
-      internationalPremiereStatus: "N/A",
-      previousFestivalSelections: "None to date",
-      director: "Amélie Fontaine",
-      productionCompany: "Marée Basse Films",
-      logline:
-        "A retired lighthouse keeper confronts a lifetime of secrets when a stranger washes ashore.",
-      shortSynopsis:
-        "On a remote stretch of the Brittany coast, an aging lighthouse keeper...",
+    console.log("Sending document to OpenAI. Text length:", text.length);
 
+    const response = await openai.responses.create({
+      model: "gpt-5.6-luna",
+
+      reasoning: {
+        effort: "low",
+      },
+
+      input: [
+        {
+          role: "system",
+          content:
+            "You extract film information from production documents. Only use information supported by the supplied document. Do not invent missing information.",
+        },
+        {
+          role: "user",
+          content: text,
+        },
+      ],
+    });
+
+    console.log("OpenAI response received.");
+
+    return NextResponse.json({
+      result: response.output_text,
       sourceLength: text.length,
     });
   } catch (error) {
@@ -45,9 +52,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        error: "Invalid request body.",
+        error: "Film extraction failed.",
       },
-      { status: 400 }
+      { status: 500 }
     );
   }
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-
+// outdated for some reason we have to pull from main before working on it there is currently a flow discrepancy 
 export default function SubmissionsPage() {
   return (
     <main className="mx-auto w-full max-w-6xl p-8">

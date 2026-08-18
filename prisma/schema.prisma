@@ -44,15 +44,16 @@ model film {
   shortSynopsis               String
   created_at                  DateTime     @default(now()) @db.Timestamptz(6)
   allVersions                 AllVersion[]
+  submissions                 Submission[]
 
   @@index([ownerId])
   @@map("films")
 }
 
 model AllVersion {
-  id        BigInt @id @default(autoincrement())
-  filmId    BigInt
-  film      film   @relation(fields: [filmId], references: [id], onDelete: Cascade)
+  id     BigInt @id @default(autoincrement())
+  filmId BigInt
+  film   film   @relation(fields: [filmId], references: [id], onDelete: Cascade)
 
   version Int
   title   String
@@ -63,15 +64,15 @@ model AllVersion {
   directorStatement String?
   producerStatement String?
 
-  cast             Json?
-  crew             Json?
-  technicalSpecs   Json?
-  festivals        Json?
-  awards           Json?
-  stills           Json?
-  poster           Json?
-  budget           Json?
-  financing        Json?
+  cast           Json?
+  crew           Json?
+  technicalSpecs Json?
+  festivals      Json?
+  awards         Json?
+  stills         Json?
+  poster         Json?
+  budget         Json?
+  financing      Json?
 
   trailerUrl String?
 
@@ -84,34 +85,64 @@ model AllVersion {
 }
 
 model Event {
-  id          BigInt   @id @default(autoincrement())
-  name        String
-  country     String?
-  city        String?
-  websiteUrl  String?
-  description String?
-  startDate   DateTime?
-  endDate     DateTime?
-  createdAt   DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+  id            BigInt                  @id @default(autoincrement())
+  name          String
+  country       String?
+  city          String?
+  websiteUrl    String?
+  description   String?
+  startDate     DateTime?
+  endDate       DateTime?
+  createdAt     DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime                @updatedAt @db.Timestamptz(6)
   opportunities SubmissionOpportunity[]
 
   @@map("events")
 }
 
 model SubmissionOpportunity {
-  id          BigInt @id @default(autoincrement())
-  eventId     BigInt
-  event       Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  id      BigInt @id @default(autoincrement())
+  eventId BigInt
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  name        String
-  description String?
-  deadline    DateTime?
-  fee         Decimal? @db.Decimal(10, 2)
+  name                String
+  description         String?
+  phaseOfDistribution String?
+  deadline            DateTime?
+  eventStartDate      DateTime?
+  eventEndDate        DateTime?
+  submissionUrl       String?
+  fee                 Decimal?  @db.Decimal(10, 2)
+
+  submissions Submission[]
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
   @@index([eventId])
   @@map("submission_opportunities")
+}
+
+model Submission {
+  id BigInt @id @default(autoincrement())
+
+  filmId BigInt
+  film   film   @relation(fields: [filmId], references: [id], onDelete: Cascade)
+
+  opportunityId BigInt
+  opportunity   SubmissionOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  submissionStatus String  @default("interested")
+  selectionStatus  String?
+
+  notes       String?
+  submittedAt DateTime? @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@unique([filmId, opportunityId])
+  @@index([filmId])
+  @@index([opportunityId])
+  @@map("submissions")
 }

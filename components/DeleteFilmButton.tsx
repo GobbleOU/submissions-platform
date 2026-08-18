@@ -1,5 +1,5 @@
 "use client";
-
+/// Used for deletion of content on site as name states keep in but maybe add extra confirmation later
 import { useRouter } from "next/navigation";
 
 export default function DeleteFilmButton({

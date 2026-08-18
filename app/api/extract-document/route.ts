@@ -10,6 +10,7 @@ import { validateDocument } from "@/lib/document-validation";
 // This file extracts information from uploaded DOCX and PDF files,
 // then validates the extracted document before it can continue
 // to the AI extraction step.
+// This is still a work in progress but we are trying to bypass a double call to the ai every time. 
 
 export async function POST(request: Request) {
   try {

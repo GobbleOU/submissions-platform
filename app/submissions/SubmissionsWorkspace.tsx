@@ -119,17 +119,19 @@ export default function SubmissionsWorkspace({
       }
 
       setLocalSubmissions((current) => [
-        ...current,
-        {
-          id: String(result.id),
-          filmId: String(result.filmId),
-          opportunityId: String(result.opportunityId),
-          submissionStatus:
-            result.submissionStatus ?? "interested",
-          selectionStatus:
-            result.selectionStatus ?? null,
-        },
-      ]);
+  ...current,
+  {
+    id: String(result.id),
+    filmId: String(result.filmId),
+    opportunityId: String(result.opportunityId),
+    submissionStatus:
+      result.submissionStatus ?? "interested",
+    selectionStatus:
+      result.selectionStatus ?? null,
+    notes: result.notes ?? null,
+    submittedAt: result.submittedAt ?? null,
+  },
+]);
 
       setMessages((current) => ({
         ...current,

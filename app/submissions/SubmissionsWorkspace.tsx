@@ -132,6 +132,21 @@ export default function SubmissionsWorkspace({
     submittedAt: result.submittedAt ?? null,
   },
 ]);
+const [editingSubmissionId, setEditingSubmissionId] =
+  useState<string | null>(null);
+
+const [savingSubmissionId, setSavingSubmissionId] =
+  useState<string | null>(null);
+
+const [editValues, setEditValues] = useState<{
+  submissionStatus: string;
+  selectionStatus: string;
+  notes: string;
+}>({
+  submissionStatus: "interested",
+  selectionStatus: "",
+  notes: "",
+});
 
       setMessages((current) => ({
         ...current,

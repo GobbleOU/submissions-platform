@@ -2,9 +2,15 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function proxy(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers);
+
+  // Never trust a user ID supplied by the browser.
+  // The proxy will replace it with the verified Supabase user ID.
+  requestHeaders.delete("x-user-id");
+
   let response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: requestHeaders,
     },
   });
 
@@ -16,9 +22,11 @@ export async function proxy(request: NextRequest) {
         get(name: string) {
           return request.cookies.get(name)?.value;
         },
+
         set(name: string, value: string, options: any) {
           response.cookies.set(name, value, options);
         },
+
         remove(name: string, options: any) {
           response.cookies.delete(name);
         },
@@ -26,22 +34,34 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // Refresh the auth session to keep it valid
-  await supabase.auth.getUser();
+  // Verify the user with Supabase.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  return response;
+  // Forward the verified user ID to Server Components.
+  if (user) {
+    requestHeaders.set("x-user-id", user.id);
+  }
+
+  // Re-create the response using the updated request headers.
+  const finalResponse = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  // Preserve any cookies Supabase refreshed.
+  response.cookies.getAll().forEach((cookie) => {
+    finalResponse.cookies.set(cookie);
+  });
+
+  return finalResponse;
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - auth/callback (OAuth callback - needs to set cookies without middleware interference)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!api|auth/callback|_next/static|_next/image|favicon.ico).*)",
+    "/films/:path*",
+    "/submissions/:path*",
   ],
 };

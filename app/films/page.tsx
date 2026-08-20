@@ -1,33 +1,18 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 
 import DeleteFilmButton from "@/components/DeleteFilmButton";
 import { prisma } from "@/lib/prisma";
-import { createServerSupabase } from "@/lib/supabase-server";
 
 export default async function FilmsDashboardPage() {
   const pageStart = performance.now();
 
-  const supabaseStart = performance.now();
+  const requestHeaders = await headers();
+  const userId = requestHeaders.get("x-user-id");
 
-  const supabase = await createServerSupabase();
+  const headerEnd = performance.now();
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  console.log(
-    "[films] Supabase auth:",
-    Math.round(performance.now() - supabaseStart),
-    "ms"
-  );
-
-  if (!session?.user) {
-    console.log(
-      "[films] Total:",
-      Math.round(performance.now() - pageStart),
-      "ms"
-    );
-
+  if (!userId) {
     return (
       <main className="mx-auto w-full max-w-6xl p-8">
         <div className="rounded-lg border border-dashed border-zinc-300 p-10 text-center">
@@ -54,22 +39,30 @@ export default async function FilmsDashboardPage() {
 
   const films = await prisma.film.findMany({
     where: {
-      ownerId: session.user.id,
+      ownerId: userId,
     },
     orderBy: {
       created_at: "desc",
     },
   });
 
+  const databaseEnd = performance.now();
+
+  console.log(
+    "[films] Header auth:",
+    Math.round(headerEnd - pageStart),
+    "ms"
+  );
+
   console.log(
     "[films] Prisma query:",
-    Math.round(performance.now() - databaseStart),
+    Math.round(databaseEnd - databaseStart),
     "ms"
   );
 
   console.log(
     "[films] Total server work:",
-    Math.round(performance.now() - pageStart),
+    Math.round(databaseEnd - pageStart),
     "ms"
   );
 
@@ -119,49 +112,40 @@ export default async function FilmsDashboardPage() {
         </section>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {films.map(
-            (film: {
-              id: bigint;
-              year: number;
-              title: string;
-              logline: string;
-              genre: string;
-              runtime: number;
-            }) => (
-              <article
-                key={film.id.toString()}
-                className="rounded-lg border border-zinc-200 p-5"
+          {films.map((film) => (
+            <article
+              key={film.id.toString()}
+              className="rounded-lg border border-zinc-200 p-5"
+            >
+              <Link
+                href={`/films/${film.id}`}
+                className="block transition hover:text-zinc-600"
               >
-                <Link
-                  href={`/films/${film.id}`}
-                  className="block transition hover:text-zinc-600"
-                >
-                  <p className="text-sm text-zinc-500">
-                    {film.year}
-                  </p>
+                <p className="text-sm text-zinc-500">
+                  {film.year}
+                </p>
 
-                  <h2 className="mt-1 text-xl font-semibold">
-                    {film.title}
-                  </h2>
+                <h2 className="mt-1 text-xl font-semibold">
+                  {film.title}
+                </h2>
 
-                  <p className="mt-3 line-clamp-2 text-sm text-zinc-600">
-                    {film.logline}
-                  </p>
+                <p className="mt-3 line-clamp-2 text-sm text-zinc-600">
+                  {film.logline}
+                </p>
 
-                  <div className="mt-5 flex items-center justify-between text-sm text-zinc-500">
-                    <span>{film.genre}</span>
-                    <span>{film.runtime} min</span>
-                  </div>
-                </Link>
-
-                <div className="mt-5 border-t border-zinc-100 pt-4">
-                  <DeleteFilmButton
-                    filmId={film.id.toString()}
-                  />
+                <div className="mt-5 flex items-center justify-between text-sm text-zinc-500">
+                  <span>{film.genre}</span>
+                  <span>{film.runtime} min</span>
                 </div>
-              </article>
-            )
-          )}
+              </Link>
+
+              <div className="mt-5 border-t border-zinc-100 pt-4">
+                <DeleteFilmButton
+                  filmId={film.id.toString()}
+                />
+              </div>
+            </article>
+          ))}
         </div>
       )}
     </main>

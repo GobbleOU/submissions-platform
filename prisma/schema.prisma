@@ -105,10 +105,15 @@ model SubmissionOpportunity {
   eventId BigInt
   event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  name        String
-  description String?
-  deadline    DateTime?
-  fee         Decimal?     @db.Decimal(10, 2)
+  name                String
+  description         String?
+  phaseOfDistribution String?
+  deadline            DateTime?
+  eventStartDate      DateTime?
+  eventEndDate        DateTime?
+  submissionUrl       String?
+  fee                 Decimal?  @db.Decimal(10, 2)
+
   submissions Submission[]
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)

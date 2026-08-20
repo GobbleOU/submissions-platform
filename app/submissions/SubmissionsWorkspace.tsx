@@ -26,6 +26,8 @@ type Submission = {
   opportunityId: string;
   submissionStatus: string;
   selectionStatus: string | null;
+  notes: string | null;
+  submittedAt: string | null;
 };
 
 type Props = {
@@ -52,6 +54,22 @@ export default function SubmissionsWorkspace({
 
   const [localSubmissions, setLocalSubmissions] =
     useState<Submission[]>(submissions);
+
+  const [editingSubmissionId, setEditingSubmissionId] =
+    useState<string | null>(null);
+
+  const [savingSubmissionId, setSavingSubmissionId] =
+    useState<string | null>(null);
+
+  const [editValues, setEditValues] = useState<{
+    submissionStatus: string;
+    selectionStatus: string;
+    notes: string;
+  }>({
+    submissionStatus: "interested",
+    selectionStatus: "",
+    notes: "",
+  });
 
   const selectedFilm = useMemo(
     () => films.find((film) => film.id === filmId),
@@ -89,6 +107,7 @@ export default function SubmissionsWorkspace({
 
     try {
       setBusyOpportunityId(opportunityId);
+
       setMessages((current) => ({
         ...current,
         [opportunityId]: "",
@@ -119,34 +138,19 @@ export default function SubmissionsWorkspace({
       }
 
       setLocalSubmissions((current) => [
-  ...current,
-  {
-    id: String(result.id),
-    filmId: String(result.filmId),
-    opportunityId: String(result.opportunityId),
-    submissionStatus:
-      result.submissionStatus ?? "interested",
-    selectionStatus:
-      result.selectionStatus ?? null,
-    notes: result.notes ?? null,
-    submittedAt: result.submittedAt ?? null,
-  },
-]);
-const [editingSubmissionId, setEditingSubmissionId] =
-  useState<string | null>(null);
-
-const [savingSubmissionId, setSavingSubmissionId] =
-  useState<string | null>(null);
-
-const [editValues, setEditValues] = useState<{
-  submissionStatus: string;
-  selectionStatus: string;
-  notes: string;
-}>({
-  submissionStatus: "interested",
-  selectionStatus: "",
-  notes: "",
-});
+        ...current,
+        {
+          id: String(result.id),
+          filmId: String(result.filmId),
+          opportunityId: String(result.opportunityId),
+          submissionStatus:
+            result.submissionStatus ?? "interested",
+          selectionStatus:
+            result.selectionStatus ?? null,
+          notes: result.notes ?? null,
+          submittedAt: result.submittedAt ?? null,
+        },
+      ]);
 
       setMessages((current) => ({
         ...current,
@@ -166,6 +170,73 @@ const [editValues, setEditValues] = useState<{
     }
   }
 
+  async function saveSubmission(
+    submissionId: string
+  ) {
+    try {
+      setSavingSubmissionId(submissionId);
+
+      const response = await fetch(
+        "/api/submissions",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            submissionId,
+            submissionStatus:
+              editValues.submissionStatus,
+            selectionStatus:
+              editValues.selectionStatus || null,
+            notes: editValues.notes,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        alert(
+          result.error ||
+            "Could not update submission."
+        );
+
+        return;
+      }
+
+      setLocalSubmissions((current) =>
+        current.map((submission) =>
+          submission.id === submissionId
+            ? {
+                ...submission,
+                submissionStatus:
+                  result.submissionStatus,
+                selectionStatus:
+                  result.selectionStatus ?? null,
+                notes: result.notes ?? null,
+                submittedAt:
+                  result.submittedAt ?? null,
+              }
+            : submission
+        )
+      );
+
+      setEditingSubmissionId(null);
+    } catch (error) {
+      console.error(
+        "Update submission error:",
+        error
+      );
+
+      alert(
+        "Something went wrong while updating the submission."
+      );
+    } finally {
+      setSavingSubmissionId(null);
+    }
+  }
+
   if (films.length === 0) {
     return (
       <section className="mt-10 rounded-lg border border-dashed border-zinc-300 p-10 text-center">
@@ -174,7 +245,8 @@ const [editValues, setEditValues] = useState<{
         </h2>
 
         <p className="mt-2 text-zinc-600">
-          Create a film before looking for submission opportunities.
+          Create a film before looking for submission
+          opportunities.
         </p>
       </section>
     );
@@ -197,11 +269,15 @@ const [editValues, setEditValues] = useState<{
           onChange={(e) => {
             setFilmId(e.target.value);
             setMessages({});
+            setEditingSubmissionId(null);
           }}
           className="mt-2 w-full max-w-md rounded border border-zinc-300 bg-white px-3 py-2"
         >
           {films.map((film) => (
-            <option key={film.id} value={film.id}>
+            <option
+              key={film.id}
+              value={film.id}
+            >
               {film.title}
             </option>
           ))}
@@ -223,7 +299,8 @@ const [editValues, setEditValues] = useState<{
           </h2>
 
           <p className="mt-1 text-sm text-zinc-500">
-            Opportunities currently being tracked for this film.
+            Opportunities currently being tracked for
+            this film.
           </p>
         </div>
 
@@ -234,59 +311,242 @@ const [editValues, setEditValues] = useState<{
             </p>
 
             <p className="mt-1 text-sm text-zinc-500">
-              Start a submission from the opportunities below.
+              Start a submission from the opportunities
+              below.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {trackedOpportunities.map((opportunity) => {
-              const submission =
-                selectedFilmSubmissions.find(
-                  (item) =>
-                    item.opportunityId === opportunity.id
-                );
+            {trackedOpportunities.map(
+              (opportunity) => {
+                const submission =
+                  selectedFilmSubmissions.find(
+                    (item) =>
+                      item.opportunityId ===
+                      opportunity.id
+                  );
 
-              return (
-                <div
-                  key={opportunity.id}
-                  className="rounded-lg border border-zinc-200 bg-white p-6"
-                >
-                  <p className="text-sm font-medium text-zinc-500">
-                    {opportunity.event.name}
-                  </p>
+                return (
+                  <div
+                    key={opportunity.id}
+                    className="rounded-lg border border-zinc-200 bg-white p-6"
+                  >
+                    <p className="text-sm font-medium text-zinc-500">
+                      {opportunity.event.name}
+                    </p>
 
-                  <h3 className="mt-1 text-xl font-semibold">
-                    {opportunity.name}
-                  </h3>
+                    <h3 className="mt-1 text-xl font-semibold">
+                      {opportunity.name}
+                    </h3>
 
-                  <div className="mt-4 flex flex-wrap gap-3 text-sm">
-                    <span className="rounded-full bg-zinc-100 px-3 py-1 font-medium text-zinc-700">
-                      Status:{" "}
-                      {submission?.submissionStatus ??
-                        "interested"}
-                    </span>
-
-                    {submission?.selectionStatus && (
+                    <div className="mt-4 flex flex-wrap gap-3 text-sm">
                       <span className="rounded-full bg-zinc-100 px-3 py-1 font-medium text-zinc-700">
-                        Selection:{" "}
-                        {submission.selectionStatus}
+                        Status:{" "}
+                        {submission?.submissionStatus ??
+                          "interested"}
                       </span>
+
+                      {submission?.selectionStatus && (
+                        <span className="rounded-full bg-zinc-100 px-3 py-1 font-medium text-zinc-700">
+                          Selection:{" "}
+                          {
+                            submission.selectionStatus
+                          }
+                        </span>
+                      )}
+                    </div>
+
+                    {submission?.submittedAt && (
+                      <p className="mt-3 text-sm text-zinc-500">
+                        Submitted:{" "}
+                        {new Date(
+                          submission.submittedAt
+                        ).toLocaleDateString()}
+                      </p>
+                    )}
+
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      {opportunity.submissionUrl && (
+                        <a
+                          href={
+                            opportunity.submissionUrl
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-50"
+                        >
+                          View submission page
+                        </a>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!submission) return;
+
+                          setEditingSubmissionId(
+                            submission.id
+                          );
+
+                          setEditValues({
+                            submissionStatus:
+                              submission.submissionStatus,
+                            selectionStatus:
+                              submission.selectionStatus ??
+                              "",
+                            notes:
+                              submission.notes ?? "",
+                          });
+                        }}
+                        className="rounded border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-50"
+                      >
+                        Manage submission
+                      </button>
+                    </div>
+
+                    {editingSubmissionId ===
+                      submission?.id && (
+                      <div className="mt-5 space-y-4 rounded-lg border border-zinc-200 bg-zinc-50 p-5">
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">
+                            Submission status
+                          </label>
+
+                          <select
+                            value={
+                              editValues.submissionStatus
+                            }
+                            onChange={(e) =>
+                              setEditValues(
+                                (current) => ({
+                                  ...current,
+                                  submissionStatus:
+                                    e.target.value,
+                                })
+                              )
+                            }
+                            className="w-full rounded border border-zinc-300 bg-white px-3 py-2"
+                          >
+                            <option value="interested">
+                              Interested
+                            </option>
+
+                            <option value="preparing">
+                              Preparing
+                            </option>
+
+                            <option value="submitted">
+                              Submitted
+                            </option>
+
+                            <option value="withdrawn">
+                              Withdrawn
+                            </option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">
+                            Selection status
+                          </label>
+
+                          <select
+                            value={
+                              editValues.selectionStatus
+                            }
+                            onChange={(e) =>
+                              setEditValues(
+                                (current) => ({
+                                  ...current,
+                                  selectionStatus:
+                                    e.target.value,
+                                })
+                              )
+                            }
+                            className="w-full rounded border border-zinc-300 bg-white px-3 py-2"
+                          >
+                            <option value="">
+                              Not set
+                            </option>
+
+                            <option value="pending">
+                              Pending
+                            </option>
+
+                            <option value="selected">
+                              Selected
+                            </option>
+
+                            <option value="rejected">
+                              Rejected
+                            </option>
+
+                            <option value="waitlisted">
+                              Waitlisted
+                            </option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="mb-2 block text-sm font-medium">
+                            Notes
+                          </label>
+
+                          <textarea
+                            value={editValues.notes}
+                            onChange={(e) =>
+                              setEditValues(
+                                (current) => ({
+                                  ...current,
+                                  notes:
+                                    e.target.value,
+                                })
+                              )
+                            }
+                            rows={4}
+                            className="w-full rounded border border-zinc-300 bg-white px-3 py-2"
+                          />
+                        </div>
+
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              submission &&
+                              saveSubmission(
+                                submission.id
+                              )
+                            }
+                            disabled={
+                              savingSubmissionId ===
+                              submission?.id
+                            }
+                            className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {savingSubmissionId ===
+                            submission?.id
+                              ? "Saving..."
+                              : "Save changes"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditingSubmissionId(
+                                null
+                              )
+                            }
+                            className="rounded border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
-
-                  {opportunity.submissionUrl && (
-                    <a
-                      href={opportunity.submissionUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-5 inline-block text-sm font-medium underline"
-                    >
-                      View submission page
-                    </a>
-                  )}
-                </div>
-              );
-            })}
+                );
+              }
+            )}
           </div>
         )}
       </section>
@@ -299,14 +559,17 @@ const [editValues, setEditValues] = useState<{
           </h2>
 
           <p className="mt-1 text-sm text-zinc-500">
-            Browse every opportunity currently available in Blink.
+            Browse every opportunity currently available
+            in Blink.
           </p>
         </div>
 
         <div className="space-y-4">
           {opportunities.map((opportunity) => {
             const alreadyTracked =
-              trackedOpportunityIds.has(opportunity.id);
+              trackedOpportunityIds.has(
+                opportunity.id
+              );
 
             return (
               <div
@@ -335,7 +598,9 @@ const [editValues, setEditValues] = useState<{
 
                 {opportunity.phaseOfDistribution && (
                   <p className="mt-3 text-sm text-zinc-700">
-                    {opportunity.phaseOfDistribution}
+                    {
+                      opportunity.phaseOfDistribution
+                    }
                   </p>
                 )}
 
@@ -348,7 +613,9 @@ const [editValues, setEditValues] = useState<{
                 <div className="mt-5 flex flex-wrap gap-3">
                   {opportunity.submissionUrl && (
                     <a
-                      href={opportunity.submissionUrl}
+                      href={
+                        opportunity.submissionUrl
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="rounded border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-50"
@@ -365,13 +632,15 @@ const [editValues, setEditValues] = useState<{
                     <button
                       type="button"
                       onClick={() =>
-                        startSubmission(opportunity.id)
+                        startSubmission(
+                          opportunity.id
+                        )
                       }
                       disabled={
                         busyOpportunityId ===
                         opportunity.id
                       }
-                      className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                      className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {busyOpportunityId ===
                       opportunity.id
@@ -383,7 +652,11 @@ const [editValues, setEditValues] = useState<{
 
                 {messages[opportunity.id] && (
                   <p className="mt-3 text-sm text-zinc-600">
-                    {messages[opportunity.id]}
+                    {
+                      messages[
+                        opportunity.id
+                      ]
+                    }
                   </p>
                 )}
               </div>
